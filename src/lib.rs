@@ -119,10 +119,17 @@ where
 }
 
 #[cfg(feature = "client")]
+#[derive(Debug, thiserror::Error)]
+pub enum ConnectError {
+    #[error("Failed to websocket: {0}")]
+    WsError(#[from] tokio_tungstenite::tungstenite::Error),
+}
+
+#[cfg(feature = "client")]
 use url::Url;
 #[cfg(feature = "client")]
 #[instrument(skip(router))]
-async fn connect(router: NextDoor, url: Url) -> Result<(), Box<dyn std::error::Error>> {
+async fn connect(router: NextDoor, url: Url) -> Result<(), ConnectError> {
     use futures_util::{SinkExt, StreamExt};
 
     info!("Establishing WebSocket connection");
