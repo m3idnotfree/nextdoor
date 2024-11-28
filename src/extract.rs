@@ -69,11 +69,14 @@ impl_from_message!(Binary, Ping, Pong, Close);
 mod tests {
     use bytes::Bytes;
     use serde::{Deserialize, Serialize};
-    use tokio_tungstenite::tungstenite::Message;
+    use tokio_tungstenite::tungstenite::{
+        protocol::{frame::coding::CloseCode, CloseFrame},
+        Message,
+    };
 
     use crate::{
         error::ExtractError,
-        extract::{Binary, FromMesasge, Json, State},
+        extract::{Binary, Close, FromMesasge, Json, State},
         request::{Frames, Request},
     };
 
@@ -86,11 +89,7 @@ mod tests {
     #[test]
     fn test_json_extractor() {
         let json_data = r#"{"name":"Alice","age":30}"#;
-        let request = Request::new(
-            Frames::Text,
-            Bytes::from(json_data),
-            Message::Text(r#"{"name":"Alice","age":30}"#.to_string()),
-        );
+        let request = Request::new(Frames::Text, Bytes::from(json_data));
 
         let result: Result<Json<TestStruct>, ExtractError> = Json::call(&request, ());
         assert!(result.is_ok());
@@ -108,11 +107,7 @@ mod tests {
     #[test]
     fn test_json_extractor_invalid_json() {
         let invalid_json = r#"{"name":"Alice","age":invalid}"#;
-        let request = Request::new(
-            Frames::Text,
-            Bytes::from(invalid_json),
-            Message::Text(r#"{"name":"Alice","age":invalid}"#.to_string()),
-        );
+        let request = Request::new(Frames::Text, Bytes::from(invalid_json));
 
         let result = Json::<TestStruct>::call(&request, ());
         assert!(result.is_err());
@@ -122,11 +117,7 @@ mod tests {
     #[test]
     fn test_state_extractor() {
         let json_data = r#"{"name":"Alice","age":30}"#;
-        let request = Request::new(
-            Frames::Text,
-            Bytes::from(json_data),
-            Message::Text(r#"{"name":"Alice","age":30}"#.to_string()),
-        );
+        let request = Request::new(Frames::Text, Bytes::from(json_data));
         let state = "test_state".to_string();
 
         let result = State::call(&request, state.clone());
@@ -137,11 +128,7 @@ mod tests {
     #[test]
     fn test_binary_extractor() {
         let data = vec![1, 2, 3, 4];
-        let request = Request::new(
-            Frames::Binary,
-            Bytes::from(data.clone()),
-            Message::Binary(data.clone()),
-        );
+        let request = Request::new(Frames::Binary, Bytes::from(data.clone()));
 
         let result = Binary::call(&request, ());
         assert!(result.is_ok());

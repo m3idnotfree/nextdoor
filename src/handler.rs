@@ -73,7 +73,6 @@ mod tests {
     use std::{marker::PhantomData, sync::Arc};
 
     use bytes::Bytes;
-    use tokio_tungstenite::tungstenite::Message;
 
     use crate::{
         error::ExtractError,
@@ -109,11 +108,7 @@ mod tests {
             MockResponse(format!("Processed: {}", arg.0))
         }
 
-        let request = Request::new(
-            Frames::Text,
-            Bytes::from("test_data"),
-            Message::Text("test_data".to_string()),
-        );
+        let request = Request::new(Frames::Text, Bytes::from("test_data"));
 
         let handler_service = ExtractorHandler {
             handler,
@@ -130,11 +125,7 @@ mod tests {
             MockResponse(format!("Processed: {} and {}", arg1.0, arg2.0))
         }
 
-        let request = Request::new(
-            Frames::Text,
-            Bytes::from("test_data"),
-            Message::Text("test_data".to_string()),
-        );
+        let request = Request::new(Frames::Text, Bytes::from("test_data"));
 
         let handler_service = ExtractorHandler {
             handler,
@@ -151,11 +142,7 @@ mod tests {
             MockResponse(format!("State processed: {}", arg.0))
         }
 
-        let request = Request::new(
-            Frames::Text,
-            Bytes::from("test_state"),
-            Message::Text("test_data".to_string()),
-        );
+        let request = Request::new(Frames::Text, Bytes::from("test_state"));
         let state = Arc::new(42);
 
         let handler_service = ExtractorHandler {
