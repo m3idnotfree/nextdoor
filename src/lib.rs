@@ -134,20 +134,17 @@ async fn connect(router: NextDoor, url: Url) -> Result<(), Box<dyn std::error::E
         match msg {
             Ok(msg) => {
                 debug!(?msg, "Received WebSocket message");
-                if let Some(request) = Request::from_ws_message(msg) {
-                    let response = router.handler(request).await;
-                    debug!(status = ?response.status, "Sending successful response");
-                    if response.status.is_success() {
-                        write.send(Message::Text(response.body)).await?;
-                    } else {
-                        warn!(
-                            status = ?response.status,
-                            body = %response.body,
-                            "Handler returned error response"
-                        );
-                    }
+                let request = Request::from_ws_message(msg);
+                let response = router.handler(request).await;
+                debug!(status = ?response.status, "Sending successful response");
+                if response.status.is_success() {
+                    write.send(Message::Text(response.body)).await?;
                 } else {
-                    warn!("Unsupported message type received");
+                    warn!(
+                        status = ?response.status,
+                        body = %response.body,
+                        "Handler returned error response"
+                    );
                 }
             }
             Err(e) => {
@@ -172,7 +169,7 @@ mod tests {
         router.text(|req: String| async move { req });
 
         let test_message = "Hello, World!";
-        let request = Request::from_ws_message(Message::Text(test_message.to_string())).unwrap();
+        let request = Request::from_ws_message(Message::Text(test_message.to_string()));
 
         let response = router.handler(request).await;
         assert_eq!(response.status, Status::OK);
@@ -183,7 +180,7 @@ mod tests {
     async fn test_not_found_handler() {
         let router = NextDoor::new();
         let test_message = "Hello, World!";
-        let request = Request::from_ws_message(Message::Text(test_message.to_string())).unwrap();
+        let request = Request::from_ws_message(Message::Text(test_message.to_string()));
 
         let response = router.handler(request).await;
         assert_eq!(response.status, Status::NotFountPath);
@@ -198,7 +195,7 @@ mod tests {
         });
 
         let test_message = "Hello";
-        let request = Request::from_ws_message(Message::Text(test_message.to_string())).unwrap();
+        let request = Request::from_ws_message(Message::Text(test_message.to_string()));
 
         let response = router.handler(request).await;
         assert_eq!(response.status, Status::OK);
