@@ -15,6 +15,15 @@ pub trait FromMesasge<S>: Sized {
 #[derive(Debug)]
 pub struct Json<T>(pub T);
 
+impl<T> Json<T>
+where
+    T: Serialize,
+{
+    pub fn new(msg: T) -> Self {
+        Json(msg)
+    }
+}
+
 impl<T, S> FromMesasge<S> for Json<T>
 where
     T: DeserializeOwned,

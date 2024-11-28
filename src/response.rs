@@ -101,7 +101,7 @@ where
 
 impl<T> IntoResponse for Json<T>
 where
-    T: serde::Serialize,
+    T: Serialize,
 {
     fn into_response(self) -> Response {
         match serde_json::to_string(&self.0) {
@@ -204,7 +204,7 @@ mod tests {
             field: String,
         }
 
-        let json = Json(TestStruct {
+        let json = Json::new(TestStruct {
             field: "test".to_string(),
         });
         let response = json.into_response();
