@@ -1,3 +1,5 @@
+use serde::Serialize;
+
 use crate::extract::Json;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
