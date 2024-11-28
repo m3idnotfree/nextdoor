@@ -1,6 +1,10 @@
 use serde::de::DeserializeOwned;
 
-use crate::{error::ExtractError, request::Request, response::IntoResponse};
+use crate::{
+    error::ExtractError,
+    request::{CloseFrame, Request},
+    response::IntoResponse,
+};
 
 pub trait FromMesasge<S>: Sized {
     type Rejection: IntoResponse + Send;
@@ -41,6 +45,24 @@ where
     }
 }
 
+/// wrapped in Arc<S>
+#[doc = "Extract of NextDoor"]
+#[derive(Debug)]
+pub struct Close(pub Option<CloseFrame>);
+
+impl<S> FromMesasge<S> for Close {
+    type Rejection = ExtractError;
+    fn call(args: &Request, _: S) -> Result<Self, Self::Rejection> {
+        if args.is_empty() {
+            Ok(Self(None))
+        } else {
+            Ok(Self(Some(
+                serde_json::from_str(&args.try_to_string().unwrap()).unwrap(),
+            )))
+        }
+    }
+}
+
 impl<S> FromMesasge<S> for String {
     type Rejection = ExtractError;
     fn call(args: &Request, _: S) -> Result<Self, Self::Rejection> {
@@ -63,7 +85,7 @@ macro_rules! impl_from_message {
     };
 }
 
-impl_from_message!(Binary, Ping, Pong, Close);
+impl_from_message!(Binary, Ping, Pong);
 
 #[cfg(test)]
 mod tests {
@@ -133,5 +155,23 @@ mod tests {
         let result = Binary::call(&request, ());
         assert!(result.is_ok());
         assert_eq!(result.unwrap().0, data);
+    }
+
+    #[test]
+    fn test_close_extractor() {
+        let data = Message::Close(Some(CloseFrame {
+            reason: "test reason".into(),
+            code: CloseCode::Normal,
+        }));
+
+        let request = Request::from_ws_message(data);
+
+        let result = Close::call(&request, ());
+        assert!(result.is_ok());
+        let result = result.unwrap();
+        assert!(result.0.is_some());
+        let result = result.0.unwrap();
+        assert_eq!(result.reason, "test reason".to_string());
+        assert_eq!(result.code, 1000);
     }
 }
