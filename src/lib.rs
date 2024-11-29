@@ -129,7 +129,7 @@ pub enum ConnectError {
 use url::Url;
 #[cfg(feature = "client")]
 #[instrument(skip(router))]
-async fn connect(router: NextDoor, url: Url) -> Result<(), ConnectError> {
+pub async fn connect(router: NextDoor, url: Url) -> Result<(), ConnectError> {
     use futures_util::{SinkExt, StreamExt};
 
     info!("Establishing WebSocket connection");
