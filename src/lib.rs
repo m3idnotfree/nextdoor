@@ -126,14 +126,15 @@ pub enum ConnectError {
 }
 
 #[cfg(feature = "client")]
-use url::Url;
-#[cfg(feature = "client")]
 #[instrument(skip(router))]
-pub async fn connect(router: NextDoor, url: Url) -> Result<(), ConnectError> {
+pub async fn connect<S>(router: NextDoor<S>, url: &str) -> Result<(), ConnectError>
+where
+    S: Clone + Send + Sync + 'static,
+{
     use futures_util::{SinkExt, StreamExt};
 
     info!("Establishing WebSocket connection");
-    let (ws_stream, response) = connect_async(url.as_str()).await?;
+    let (ws_stream, response) = connect_async(url).await?;
     let (mut write, mut read) = ws_stream.split();
     info!(status = ?response.status(), "WebSocket connection established");
 
