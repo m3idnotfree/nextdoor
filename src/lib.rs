@@ -138,7 +138,6 @@ pub mod response;
 mod client;
 #[cfg(feature = "client")]
 pub use client::*;
-// pub mod serve;
 
 use std::{collections::HashMap, marker::PhantomData, sync::Arc};
 
