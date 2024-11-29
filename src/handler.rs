@@ -12,6 +12,21 @@ pub trait Handler<T, S>: Clone + Send + Sync + 'static {
     fn call(self, args: Request, state: S) -> Self::Future;
 }
 
+impl<F, Fut, S, Res> Handler<(), S> for F
+where
+    F: Fn() -> Fut + Clone + Send + Sync + 'static,
+    Fut: Future<Output = Res> + Send + 'static,
+    Res: IntoResponse,
+    S: Clone + Send + Sync + 'static,
+{
+    type Future = Pin<Box<dyn Future<Output = Response> + Send>>;
+
+    fn call(self, _: Request, _: S) -> Self::Future {
+        let fut = self();
+        Box::pin(async move { fut.await.into_response() })
+    }
+}
+
 macro_rules! impl_handler {
     ($($ty:ident),*) => {
         impl<F, Fut, $($ty,)* S, Res> Handler<($($ty,)*), S> for F
