@@ -139,8 +139,7 @@ use std::{collections::HashMap, marker::PhantomData, sync::Arc};
 use handler::{ExtractorHandler, Handler, HandlerService};
 use request::{Frames, Request};
 use response::{Response, Status};
-use tokio_tungstenite::{connect_async, tungstenite::Message};
-use tracing::{debug, error, info, instrument, warn};
+use tracing::{debug, instrument, warn};
 
 pub struct EntryRoute<S> {
     handler: Box<dyn HandlerService<S> + Send + Sync>,
@@ -262,6 +261,8 @@ where
     S: Clone + Send + Sync + 'static,
 {
     use futures_util::{SinkExt, StreamExt};
+    use tokio_tungstenite::{connect_async, tungstenite::Message};
+    use tracing::{debug, error, info, warn};
 
     info!("Establishing WebSocket connection");
     let (ws_stream, response) = connect_async(url).await?;
