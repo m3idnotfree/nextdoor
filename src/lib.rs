@@ -48,7 +48,7 @@
 //!     let response = router.handler(req).await;
 //!
 //!     // Features = "client"
-//!     // nextdoor::connect(router, "url").await.unwrap();
+//!     // nextdoor::connect(router, "url").run().await.unwrap();
 //! }
 //!
 //!
@@ -133,6 +133,12 @@ pub mod extract;
 pub mod handler;
 pub mod request;
 pub mod response;
+
+#[cfg(feature = "client")]
+mod client;
+#[cfg(feature = "client")]
+pub use client::*;
+// pub mod serve;
 
 use std::{collections::HashMap, marker::PhantomData, sync::Arc};
 
@@ -245,55 +251,6 @@ where
             body: last.body,
         }
     }
-}
-
-#[cfg(feature = "client")]
-#[derive(Debug, thiserror::Error)]
-pub enum ConnectError {
-    #[error("Failed to websocket: {0}")]
-    WsError(#[from] tokio_tungstenite::tungstenite::Error),
-}
-
-#[cfg(feature = "client")]
-#[instrument(skip(router))]
-pub async fn connect<S>(router: NextDoor<S>, url: &str) -> Result<(), ConnectError>
-where
-    S: Clone + Send + Sync + 'static,
-{
-    use futures_util::{SinkExt, StreamExt};
-    use tokio_tungstenite::{connect_async, tungstenite::Message};
-    use tracing::{debug, error, info, warn};
-
-    info!("Establishing WebSocket connection");
-    let (ws_stream, response) = connect_async(url).await?;
-    let (mut write, mut read) = ws_stream.split();
-    info!(status = ?response.status(), "WebSocket connection established");
-
-    while let Some(msg) = read.next().await {
-        match msg {
-            Ok(msg) => {
-                debug!(?msg, "Received WebSocket message");
-                let request = Request::from_ws_message(msg);
-                let response = router.handler(request).await;
-                debug!(status = ?response.status, "Sending successful response");
-                if response.status.is_success() {
-                    write.send(Message::Text(response.body)).await?;
-                } else {
-                    warn!(
-                        status = ?response.status,
-                        body = %response.body,
-                        "Handler returned error response"
-                    );
-                }
-            }
-            Err(e) => {
-                error!(error = %e, "Error receiving WebSocket message");
-                break;
-            }
-        }
-    }
-
-    Ok(())
 }
 
 #[cfg(test)]
