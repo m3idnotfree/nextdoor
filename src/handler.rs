@@ -71,7 +71,7 @@ where
 impl<H, T, S> HandlerService<S> for ExtractorHandler<H, T, S>
 where
     H: Handler<T, S> + Clone + Send + Sync + 'static,
-    T: Clone + Send + Sync + 'static,
+    T: Send + Sync + 'static,
 {
     fn call(
         &self,
