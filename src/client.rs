@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use futures_util::{SinkExt, StreamExt};
 use tokio::sync::mpsc;
 use tokio_tungstenite::{connect_async, tungstenite::Message};
@@ -11,7 +13,7 @@ where
 {
     Client {
         url,
-        router,
+        router: Arc::new(router),
         capacity: 100,
     }
 }
@@ -24,7 +26,7 @@ pub enum ConnectError {
 
 pub struct Client<'a, S> {
     url: &'a str,
-    router: NextDoor<S>,
+    router: Arc<NextDoor<S>>,
     capacity: usize,
 }
 
@@ -34,7 +36,7 @@ where
 {
     pub fn new(router: NextDoor<S>, url: &'a str, capacity: usize) -> Self {
         Self {
-            router,
+            router: Arc::new(router),
             url,
             capacity,
         }
@@ -60,7 +62,6 @@ where
                             if tx.send(Message::Text(response.body)).await.is_err() {
                                 break;
                             }
-                            // write.send(Message::Text(response.body)).await?;
                         } else {
                             warn!(
                                 status = ?response.status,
@@ -94,12 +95,8 @@ where
         };
 
         tokio::select! {
-            _ = recv_task => {
-                // info!("Receive task completed");
-            }
-            _ = send_task => {
-                // info!("Send task completed");
-            }
+            _ = recv_task => {}
+            _ = send_task => {}
             _ = shutdown => {
                 info!("Shutting down gracefully");
             }
