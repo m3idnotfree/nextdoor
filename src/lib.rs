@@ -179,7 +179,7 @@ macro_rules! impl_router_route {
             pub fn $method<P, F>(&mut self, handler: F) -> &mut Self
             where
                 F: Handler<P, S> + Clone + Send + Sync + 'static,
-                P: Send + Sync + 'static,
+                P: Clone + Send + Sync + 'static,
             {
                 self.route(Frames::$frame, handler)
             }
@@ -207,7 +207,7 @@ where
     fn route<P, F>(&mut self, frame: Frames, handler: F) -> &mut Self
     where
         F: Handler<P, S> + Clone + Send + Sync + 'static,
-        P: Send + Sync + 'static,
+        P: Clone + Send + Sync + 'static,
     {
         self.route.entry(frame).or_default().push(EntryRoute {
             handler: Box::new(ExtractorHandler {

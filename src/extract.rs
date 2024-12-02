@@ -12,7 +12,7 @@ pub trait FromMesasge<S>: Sized {
 }
 
 #[doc = "Extract of NextDoor"]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Json<T>(pub T);
 
 impl<T> Json<T>
@@ -41,7 +41,7 @@ where
 }
 
 #[doc = "Extract of NextDoor"]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct State<S>(pub S);
 
 impl<S> FromMesasge<S> for State<S>
@@ -56,7 +56,7 @@ where
 
 /// wrapped in Arc<S>
 #[doc = "Extract of NextDoor"]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Close(pub Option<CloseFrame>);
 
 impl<S> FromMesasge<S> for Close {
@@ -84,10 +84,17 @@ macro_rules! impl_from_message {
         #[doc = "Extract of NextDoor"]
         #[derive(Debug)]
     $(  pub struct $ty(pub Vec<u8>);
-        impl<S> FromMesasge<S> for $ty {
+        impl<S> FromMesasge<S> for $ty
+        {
             type Rejection = ExtractError;
             fn call(args: &Request, _: S) -> Result<Self, Self::Rejection> {
                 Ok(Self(args.to_vec()))
+            }
+        }
+
+        impl Clone for $ty {
+            fn clone(&self) -> Self {
+                Self(self.0.clone())
             }
         }
     )*

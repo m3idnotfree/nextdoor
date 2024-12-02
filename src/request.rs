@@ -24,7 +24,7 @@ pub struct Request {
 }
 
 /// CloseFrame of Nextdoor
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CloseFrame {
     pub reason: String,
     pub code: u16,
