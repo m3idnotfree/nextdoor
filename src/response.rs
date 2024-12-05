@@ -9,6 +9,8 @@ pub enum Status {
 
     NotFound,
 
+    Reconnect,
+
     NotImplemented,
 
     JsonError,
@@ -19,6 +21,10 @@ pub enum Status {
 impl Status {
     pub fn is_success(&self) -> bool {
         *self == Status::OK
+    }
+
+    pub fn is_reconnect(&self) -> bool {
+        *self == Status::Reconnect
     }
 
     pub fn is_error(&self) -> bool {
@@ -55,6 +61,12 @@ pub trait IntoResponse {
 impl IntoResponse for () {
     fn into_response(self) -> Response {
         Response::new(Status::NoContent, "")
+    }
+}
+
+impl IntoResponse for (Status, String) {
+    fn into_response(self) -> Response {
+        Response::new(self.0, self.1)
     }
 }
 
@@ -98,6 +110,12 @@ where
             Some(value) => value.into_response(),
             None => Response::new(Status::NotFound, "Not Found"),
         }
+    }
+}
+
+impl IntoResponse for Response {
+    fn into_response(self) -> Response {
+        self
     }
 }
 
