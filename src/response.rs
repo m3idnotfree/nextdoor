@@ -108,7 +108,7 @@ where
     fn into_response(self) -> Response {
         match self {
             Some(value) => value.into_response(),
-            None => Response::new(Status::NotFound, "Not Found"),
+            None => Response::new(Status::NotFound, ""),
         }
     }
 }
