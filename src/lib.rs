@@ -144,7 +144,7 @@ use std::{collections::HashMap, marker::PhantomData, sync::Arc};
 use handler::{ExtractorHandler, Handler, HandlerService};
 use request::{Frames, Request};
 use response::{Response, Status};
-use tracing::{debug, instrument, warn};
+use tracing::{debug, instrument};
 
 pub struct EntryRoute<S> {
     handler: Box<dyn HandlerService<S> + Send + Sync>,
@@ -218,15 +218,12 @@ where
         self
     }
 
-    #[instrument(skip(self, req), fields(path = ?req.path))]
+    #[instrument(skip(self, req), fields(path = ?req.path), level = "debug")]
     pub async fn handler(&self, req: Request) -> Response {
         let routes = match self.route.get(&req.path) {
-            Some(route) => {
-                debug!("Found handler for frame type");
-                route
-            }
+            Some(route) => route,
             None => {
-                warn!("No handler found for frame type");
+                debug!("No handler found for frame type");
                 return Response {
                     status: Status::NotFountPath,
                     body: String::from_utf8(req.to_vec()).unwrap(),
