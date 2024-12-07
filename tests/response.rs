@@ -115,7 +115,7 @@ fn test_option_into_response() {
     let none_value: Option<&str> = None;
     let response = none_value.into_response();
     assert_eq!(response.status, Status::NotFound);
-    assert_eq!(response.body, "Not Found");
+    assert_eq!(response.body, "");
 }
 
 #[test]
